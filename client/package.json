@@ -15,7 +15,6 @@
   "license": "ISC",
   "dependencies": {
     "codemirror": "^5.36.0",
-    "codemirror-console": "^1.0.0",
     "css-loader": "^0.28.11",
     "es6-promise": "^4.2.4",
     "isomorphic-fetch": "^2.2.1",

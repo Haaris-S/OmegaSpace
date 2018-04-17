@@ -1,4 +1,7 @@
 import React from 'react'
+import vm from 'vm'
+import CodeMirror from 'react-codemirror'
+
 require('es6-promise').polyfill();
 require('isomorphic-fetch');
 
@@ -7,25 +10,23 @@ import OmegaLogo from '../assets/OmegaSpace.png';
 import GithubLogo from '../assets/GithubLogo.png';
 
 import openSocket from 'socket.io-client';
-const  socket = openSocket('http://localhost:8000');
+const socket = openSocket('http://localhost:8000');
 
 import './Home.css'
 require('codemirror/lib/codemirror.css');
 require('codemirror/mode/javascript/javascript');
-let CodeMirror = require('react-codemirror');
-let MirrorConsole = require('codemirror-console');
-let mirror_editor = new MirrorConsole();
+
+const sandbox = {}
+vm.createContext(sandbox)
 
 class Home extends React.Component {
   constructor(props) {
     super(props)
-    this.state = { text: '', savedStatus: 'not saving' }
+    this.state = { text: '', savedStatus: 'not saving', execution: null }
     this.handleChange = this.handleChange.bind(this);
     this.handleSave = this.handleSave.bind(this);
     this.handleSaveStatus = this.handleSaveStatus.bind(this);
-    this.toggleReadOnly = this.toggleReadOnly.bind(this);
-    // this.results = this.results.bind(this);
-    // this.valueGetter = this.valueGetter.bind(this);
+    this.runCode = this.runCode.bind(this);
   }
 
   componentDidMount(){
@@ -42,21 +43,12 @@ class Home extends React.Component {
     let val = this.refs.editor.props.value;
 
     if (value.length !== this.state.text.length) {
-        console.log("I am Emitting");
-        // socket.emit('toText', value);
-        status = 'Changes not saved.'
-      };
-      this.setState({text: value, savedStatus: status});
-      // console.log(this.refs.editor.getCodeMirror().getValue())
-
-      console.log(mirror_editor.runInContext({console: console.log(val)}, function(err, res) {
-        if (err) console.log(err)
-      }));
+      console.log("I am Emitting");
+      // socket.emit('toText', value);
+      status = 'Changes not saved.'
+    };
+    this.setState({text: value, savedStatus: status});  
   };
-
-  // valueGetter() {
-  //   console.log(CodeMirror.getValue());
-  // }
 
   handleSaveStatus(status){
     this.setState({savedStatus: status})
@@ -83,13 +75,15 @@ class Home extends React.Component {
       })
   }
 
-  toggleReadOnly() {
-    console.log(this.refs.editor.getCodeMirror().getValue())
+  runCode() {
     this.setState({text: this.refs.editor.getCodeMirror().getValue() })
-  }
+    let text = this.state.text;
 
-  results() {
-    return eval(this.refs.editor.codeMirror.getValue())
+    // const sandbox = {}
+    // vm.createContext(sandbox)
+    // let result = vm.runInContext(text, sandbox)
+    let result = vm.runInNewContext(`${text}`, sandbox)
+    this.setState({execution: result})
   }
 
   render() {
@@ -101,8 +95,6 @@ class Home extends React.Component {
         return savedStatus;
       }
     }
-
-    let resultS = eval(JSON.stringify(this.state.text))
 
     return (
       <div>
@@ -125,14 +117,11 @@ class Home extends React.Component {
         </div>
         <CodeMirror ref='editor' value={this.state.text} onChange={this.handleChange} options={{mode: 'javascript', lineNumbers: true}}/>
         <div style={{ marginTop: 10 }}>
-          <select onChange={this.changeMode} value={this.state.mode}>
-            <option value="markdown">Markdown</option>
-            <option value="javascript">JavaScript</option>
-          </select>
-          <button onClick={this.toggleReadOnly}></button>
+          <button onClick={this.runCode}>Run Code</button>
         </div>
         <div>
-          { resultS }
+        
+          { this.state.execution }
         </div>
         {/* <ReactQuill placeholder={'Start your Omega journey... '} value={this.state.text} onChange={this.handleChange} /> */}
       </div>
