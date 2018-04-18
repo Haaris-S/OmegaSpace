@@ -1,10 +1,37 @@
+* {
+    margin: 0;
+    padding: 0;
+    font-family: Arial;
+    color: white;
+}
+
+body {
+    height: 100%;
+    background-color: #454545;
+}
+
+button {
+    float: right;
+    width: 100px;
+    height: 50px;
+    color: lightgray;
+    font-size: 1.1em;
+    background-color: #454545;
+    border-color:darkgray;
+}
+
+.CodeMirror {
+    width: 60%;
+}
+
 .top-nav {
+    padding-top: 10px;
     width:105%;
     background-color:rgb(228, 228, 228);
     height:80px;
     margin-top:-10px;
     margin-left:-10px;
-    margin-bottom:30px;
+    /* margin-bottom:30px; */
 
 }
 
@@ -37,7 +64,6 @@
 
 }
 
-
 .save-button {
     background-color:rgb(56, 56, 255);
     padding:10px;
@@ -58,3 +84,24 @@
     cursor: pointer;
     background-color:rgb(96, 96, 255);
 }
+
+#bottom-half {
+    display: block;
+    min-height: 315px;
+    max-width: 60%;
+    background-color: #1f2028;
+    color: #bd93f9;
+}
+
+#quill {
+    position: absolute;
+    display: block;
+    float: top;
+    float: right;
+    color: white;
+    position: relative;
+    height: 100%;
+    min-height: 100%;
+    min-width: 40%;
+}
+

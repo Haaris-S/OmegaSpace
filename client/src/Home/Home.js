@@ -14,6 +14,7 @@ const socket = openSocket('http://localhost:8000');
 
 import './Home.css'
 require('codemirror/lib/codemirror.css');
+require('codemirror/theme/dracula.css');
 require('codemirror/mode/javascript/javascript');
 
 const sandbox = {}
@@ -22,31 +23,44 @@ vm.createContext(sandbox)
 class Home extends React.Component {
   constructor(props) {
     super(props)
-    this.state = { text: '', savedStatus: 'not saving', execution: null }
+    this.state = { 
+      text: '', 
+      savedStatus: 'not saving', 
+      execution: null,
+      notes: '',
+    }
     this.handleChange = this.handleChange.bind(this);
     this.handleSave = this.handleSave.bind(this);
     this.handleSaveStatus = this.handleSaveStatus.bind(this);
     this.runCode = this.runCode.bind(this);
+    socket.on('subscribeToText', (text) => {
+      this.setState({ text: text });
+    });
   }
-
+  
   componentDidMount(){
-      fetch('/api/gettext')
-        .then(res => res.json())
-        .then(data => this.setState({ text: data }));
-        // socket.on('subscribeToText', (text) => {
-        //   this.setState({text: text});
-        // });
-    };
+    fetch('/api/gettext')
+      .then(res => res.json())
+      .then(data => this.setState({ text: data }));
+    // let that = this;
+    socket.on('subscribeToText', (text) => {
+      console.log('I am receiving!')
+      // console.log(that);
+      // console.log('Value on receive: ', text);
+      this.setState({ text: text });
+      // debugger
+    });
+  };
 
   handleChange(value) {
     let status = '';
-    let val = this.refs.editor.props.value;
-
+  
     if (value.length !== this.state.text.length) {
-      console.log("I am Emitting");
-      // socket.emit('toText', value);
+      console.log("I am emitting!");
+      socket.emit('toText', value);
       status = 'Changes not saved.'
     };
+
     this.setState({text: value, savedStatus: status});  
   };
 
@@ -55,7 +69,7 @@ class Home extends React.Component {
     if (status === 'Saved!'){
       setTimeout(() => {
         this.setState({savedStatus: 'not saving'})
-      },2000)
+      }, 2000)
     }
   }
 
@@ -95,7 +109,7 @@ class Home extends React.Component {
         return savedStatus;
       }
     }
-
+    // console.log(this.state.text)
     return (
       <div>
         <div className="top-nav">
@@ -115,15 +129,31 @@ class Home extends React.Component {
             </a>
           </div>
         </div>
-        <CodeMirror ref='editor' value={this.state.text} onChange={this.handleChange} options={{mode: 'javascript', lineNumbers: true}}/>
-        <div style={{ marginTop: 10 }}>
-          <button onClick={this.runCode}>Run Code</button>
+
+        <ReactQuill id="quill" theme="snow" placeholder={'Start your Omega journey... '} value={this.state.text} onChange={this.handleChange} />
+        <CodeMirror
+          id='editor'
+          ref='editor' 
+          value={this.state.text} 
+          onChange={this.handleChange} 
+          options={{
+            mode: 'javascript', 
+            lineNumbers: true,
+            theme: 'dracula'
+          }}
+        />
+
+        {/* <p>Test:</p>
+        {this.state.text} */}
+
+        <div id="bottom-half">
+          <div style={{ marginTop: 10 }}>
+            <button onClick={this.runCode}>Run Code</button>
+          </div>
+          <div id="execution-context">
+            { this.state.execution }
+          </div>
         </div>
-        <div>
-        
-          { this.state.execution }
-        </div>
-        {/* <ReactQuill placeholder={'Start your Omega journey... '} value={this.state.text} onChange={this.handleChange} /> */}
       </div>
     );
   }
