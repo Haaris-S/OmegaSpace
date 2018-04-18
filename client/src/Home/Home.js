@@ -34,9 +34,9 @@ class Home extends React.Component {
     this.handleSave = this.handleSave.bind(this);
     this.handleSaveStatus = this.handleSaveStatus.bind(this);
     this.runCode = this.runCode.bind(this);
-    socket.on('subscribeToText', (text) => {
-      this.setState({ notes: text });
-    });
+    // socket.on('subscribeToText', (text) => {
+    //   this.setState({ notes: text });
+    // });
   }
 
   componentDidMount() {
@@ -46,6 +46,12 @@ class Home extends React.Component {
     socket.on('subscribeToText', (text) => {
       console.log('I am receiving!')
       this.setState({ notes: text });
+      // debugger
+    });
+
+    socket.on('subscribeToCode', (text) => {
+      console.log('I am receiving!')
+      this.setState({ text: text });
       // debugger
     });
   };
@@ -66,12 +72,10 @@ class Home extends React.Component {
     let status = '';
 
     if (value.length !== this.state.text.length) {
-      // console.log("I am emitting!");
-      // socket.emit('toText', value);
-      // status = 'Changes not saved.'
+      // socket.emit('toCode', value);
     };
 
-    this.setState({ text: value, savedStatus: status });
+    this.setState({ text: value});
   };
 
   handleSaveStatus(status) {

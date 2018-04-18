@@ -7,6 +7,10 @@ io.on('connection', (client) => {
     client.on('toText', (text) => {
         client.broadcast.emit('subscribeToText', text);
     });
+
+    client.on('toCode', (code) => {
+        client.broadcast.emit('subscribeToCode', code);
+    });
 });
 
 http.listen(8000, function () {
