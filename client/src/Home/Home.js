@@ -16,7 +16,8 @@ import './Home.css'
 require('codemirror/lib/codemirror.css');
 require('codemirror/theme/dracula.css');
 require('codemirror/mode/javascript/javascript');
-
+require('codemirror/addon/edit/closebrackets.js');
+// require('');
 const sandbox = {}
 vm.createContext(sandbox)
 
@@ -152,9 +153,10 @@ class Home extends React.Component {
             value={this.state.text}
             onChange={this.handleChange}
             options={{
+              autoCloseBrackets: true,
               mode: 'javascript',
               lineNumbers: true,
-              theme: 'dracula'
+              theme: 'dracula',
             }}
           />
 
