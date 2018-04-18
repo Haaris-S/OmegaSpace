@@ -23,52 +23,62 @@ vm.createContext(sandbox)
 class Home extends React.Component {
   constructor(props) {
     super(props)
-    this.state = { 
-      text: '', 
-      savedStatus: 'not saving', 
+    this.state = {
+      text: '',
+      savedStatus: 'not saving',
       execution: null,
       notes: '',
     }
     this.handleChange = this.handleChange.bind(this);
+    this.handleNotesChange = this.handleNotesChange.bind(this);
     this.handleSave = this.handleSave.bind(this);
     this.handleSaveStatus = this.handleSaveStatus.bind(this);
     this.runCode = this.runCode.bind(this);
     socket.on('subscribeToText', (text) => {
-      this.setState({ text: text });
+      this.setState({ notes: text });
     });
   }
-  
-  componentDidMount(){
+
+  componentDidMount() {
     fetch('/api/gettext')
       .then(res => res.json())
-      .then(data => this.setState({ text: data }));
-    // let that = this;
+      .then(data => this.setState({ notes: data }));
     socket.on('subscribeToText', (text) => {
       console.log('I am receiving!')
-      // console.log(that);
-      // console.log('Value on receive: ', text);
-      this.setState({ text: text });
+      this.setState({ notes: text });
       // debugger
     });
   };
 
-  handleChange(value) {
+  handleNotesChange(value) {
     let status = '';
-  
-    if (value.length !== this.state.text.length) {
+
+    if (value.length !== this.state.notes.length) {
       console.log("I am emitting!");
       socket.emit('toText', value);
       status = 'Changes not saved.'
     };
 
-    this.setState({text: value, savedStatus: status});  
+    this.setState({ notes: value, savedStatus: status });
+  }
+
+  handleChange(value) {
+    let status = '';
+
+    if (value.length !== this.state.text.length) {
+      // console.log("I am emitting!");
+      // socket.emit('toText', value);
+      // status = 'Changes not saved.'
+    };
+
+    this.setState({ text: value, savedStatus: status });
   };
 
-  handleSaveStatus(status){
-    this.setState({savedStatus: status})
-    if (status === 'Saved!'){
+  handleSaveStatus(status) {
+    this.setState({ savedStatus: status })
+    if (status === 'Saved!') {
       setTimeout(() => {
-        this.setState({savedStatus: 'not saving'})
+        this.setState({ savedStatus: 'not saving' })
       }, 2000)
     }
   }
@@ -81,7 +91,7 @@ class Home extends React.Component {
         'Accept': 'application/json',
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({text: this.state.text})
+      body: JSON.stringify({ notes: this.state.notes })
     })
       .then(res => res.json())
       .then(data => {
@@ -90,20 +100,20 @@ class Home extends React.Component {
   }
 
   runCode() {
-    this.setState({text: this.refs.editor.getCodeMirror().getValue() })
+    this.setState({ text: this.refs.editor.getCodeMirror().getValue() })
     let text = this.state.text;
 
     // const sandbox = {}
     // vm.createContext(sandbox)
     // let result = vm.runInContext(text, sandbox)
     let result = vm.runInNewContext(`${text}`, sandbox)
-    this.setState({execution: result})
+    this.setState({ execution: result })
   }
 
   render() {
     let { savedStatus } = this.state;
     let saveStatusRender = () => {
-      if (savedStatus === 'not saving'){
+      if (savedStatus === 'not saving') {
         return '';
       } else {
         return savedStatus;
@@ -117,7 +127,7 @@ class Home extends React.Component {
             <img src={OmegaLogo} alt='OmegaSpace Logo' />
           </div>
 
-          <p className="save-status">{ saveStatusRender() }</p>
+          <p className="save-status">{saveStatusRender()}</p>
 
           <div onClick={this.handleSave} className="save-button">
             Save
@@ -130,29 +140,30 @@ class Home extends React.Component {
           </div>
         </div>
 
-        <ReactQuill id="quill" theme="snow" placeholder={'Start your Omega journey... '} value={this.state.text} onChange={this.handleChange} />
-        <CodeMirror
-          id='editor'
-          ref='editor' 
-          value={this.state.text} 
-          onChange={this.handleChange} 
-          options={{
-            mode: 'javascript', 
-            lineNumbers: true,
-            theme: 'dracula'
-          }}
-        />
+        <div id="container">
+          <ReactQuill id="quill" theme="snow" placeholder={'Start your Omega journey... '} value={this.state.notes} onChange={this.handleNotesChange} />
+          <CodeMirror
+            id='editor'
+            ref='editor'
+            value={this.state.text}
+            onChange={this.handleChange}
+            options={{
+              mode: 'javascript',
+              lineNumbers: true,
+              theme: 'dracula'
+            }}
+          />
 
-        {/* <p>Test:</p>
-        {this.state.text} */}
+          <div id="bottom-half">
+            <div style={{ marginTop: 10 }}>
+              <button onClick={this.runCode}>Run Code</button>
+            </div>
+            
+            <div id="execution-context">
+              {this.state.execution}
+            </div>
+          </div>
 
-        <div id="bottom-half">
-          <div style={{ marginTop: 10 }}>
-            <button onClick={this.runCode}>Run Code</button>
-          </div>
-          <div id="execution-context">
-            { this.state.execution }
-          </div>
         </div>
       </div>
     );
